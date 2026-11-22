@@ -1,1 +1,176 @@
-<!doctype html><html lang="uk"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#090d0c"><title>BilokUA • Розіграш</title><style>:root{color-scheme:dark;--green:#b8ff35;--muted:#99a6a0}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -10%,#24412a 0%,#0b1210 46%,#070a09 100%);color:#f4fff7;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100svh;padding:env(safe-area-inset-top) 18px env(safe-area-inset-bottom)}main{max-width:480px;margin:auto;padding:30px 0 45px}.top{display:flex;justify-content:space-between;align-items:center}.logo{font-size:27px;font-weight:950;letter-spacing:-1.4px}.logo span{color:var(--green)}.pill{border:1px solid #40563b;border-radius:30px;padding:8px 12px;color:var(--green);font-size:11px;letter-spacing:1px;font-weight:800}h1{font-size:39px;letter-spacing:-1.8px;line-height:1.05;margin:32px 0 12px}h1 em{font-style:normal;color:var(--green)}.sub{color:var(--muted);font-size:14px;line-height:1.5;margin:0 0 24px}.panel{border:1px solid #304238;background:linear-gradient(145deg,#18241d,#0e1612);border-radius:25px;padding:20px;box-shadow:0 15px 45px #0005}.eyebrow{color:var(--muted);font-size:11px;letter-spacing:1.8px;font-weight:800;text-transform:uppercase}.display{min-height:150px;display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}.display:before{content:'';position:absolute;width:170px;height:170px;background:#a5ff2b15;filter:blur(45px);border-radius:50%}.name{font-size:clamp(27px,8vw,43px);font-weight:900;line-height:1.12;overflow-wrap:anywhere;position:relative;transition:transform .12s}.name.spinning{color:var(--green);transform:scale(1.05)}.winner{color:var(--green);animation:pop .6s cubic-bezier(.15,1.7,.3,1)}@keyframes pop{0%{transform:scale(.6);opacity:.2}100%{transform:scale(1);opacity:1}}.status{text-align:center;color:var(--muted);font-size:12px;min-height:18px;margin-bottom:17px}.btn{border:0;width:100%;padding:17px;border-radius:15px;background:var(--green);color:#10170a;font-size:16px;font-weight:900;cursor:pointer;box-shadow:0 6px 22px #b8ff3528}.btn:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#243229;color:#d9f4df;box-shadow:none;margin-top:10px}.section{display:flex;justify-content:space-between;align-items:center;margin:27px 0 12px}.section strong{font-size:17px}.count{font-size:12px;color:var(--green);background:#203121;padding:7px 10px;border-radius:20px}textarea{width:100%;min-height:135px;resize:vertical;border-radius:17px;background:#111b15;border:1px solid #314337;color:#fff;font:15px/1.5 -apple-system,sans-serif;padding:15px;outline:none}textarea:focus{border-color:var(--green)}.hint{color:var(--muted);font-size:12px;margin:9px 2px 13px}.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px}.chip{background:#203027;border:1px solid #395044;border-radius:30px;padding:9px 12px;color:#e9f5e9;font-size:13px}.chip button{background:none;border:0;color:#c4d1c7;margin-left:7px;font-size:16px;cursor:pointer}.row{display:flex;gap:9px}.row .btn{flex:1}.small{font-size:12px;padding:13px}.footer{text-align:center;color:#64766b;font-size:11px;margin-top:26px}canvas{position:fixed;inset:0;pointer-events:none;z-index:5;width:100%;height:100%}</style></head><body><canvas id="confetti"></canvas><main><div class="top"><div class="logo">BILOK<span>UA.</span></div><div class="pill">GIVEAWAY • LIVE</div></div><h1>Час обрати<br><em>переможця.</em> ✦</h1><p class="sub">Усі учасники мають рівні шанси. Натисни кнопку та дізнайся, кому сьогодні пощастить!</p><div class="panel"><div class="eyebrow">🎁 Щоденний розіграш</div><div class="display"><div id="display" class="name">Хто переможе?</div></div><div class="status" id="status">Додай учасників нижче</div><button id="draw" class="btn" disabled>✦ РОЗПОЧАТИ РОЗІГРАШ</button><button id="again" class="btn secondary" hidden>↻ Провести ще раз</button></div><div class="section"><strong>Учасники</strong><span id="count" class="count">0 учасників</span></div><textarea id="names" placeholder="Введи імена, кожне з нового рядка:&#10;Анастасія&#10;Максим&#10;Олександр"></textarea><div class="hint">Можна вставити одразу весь список. Одна людина — один рядок. Якщо відкрито у переглядачі файлів, список може не зберегтися після закриття.</div><div class="row"><button id="add" class="btn small">+ Додати учасників</button><button id="clear" class="btn secondary small" style="margin:0">Очистити</button></div><div class="chips" id="chips"></div><div class="footer">BILOKUA • RANDOM WINNER PICKER</div></main><script>const $=id=>document.getElementById(id);let participants=[],running=false;try{const saved=localStorage.getItem('bilokua_participants');const parsed=JSON.parse(saved||'[]');if(Array.isArray(parsed))participants=parsed}catch(e){}function save(){try{localStorage.setItem('bilokua_participants',JSON.stringify(participants))}catch(e){}render()}function render(){$('count').textContent=participants.length+' учасників';$('draw').disabled=!participants.length||running;$('chips').replaceChildren();participants.forEach((n,i)=>{const c=document.createElement('span');c.className='chip';c.append(document.createTextNode(n));const b=document.createElement('button');b.textContent='×';b.setAttribute('aria-label','Видалити '+n);b.onclick=()=>{if(!running){participants.splice(i,1);save()}};c.append(b);$('chips').append(c)})}function add(){if(running)return;const values=$('names').value.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean);participants.push(...values);$('names').value='';save();if(values.length)$('status').textContent='Усе готово! Учасників: '+participants.length} $('add').onclick=add;$('clear').onclick=()=>{if(running)return;if(participants.length&&!confirm('Очистити список учасників?'))return;participants=[];save();$('display').textContent='Хто переможе?';$('status').textContent='Додай учасників нижче';$('again').hidden=true};$('draw').onclick=draw;$('again').onclick=draw;function rand(n){if(n<=1)return 0;if(typeof crypto!=='undefined'&&crypto.getRandomValues){const x=new Uint32Array(1),limit=Math.floor(4294967296/n)*n;do{crypto.getRandomValues(x)}while(x[0]>=limit);return x[0]%n}return Math.floor(Math.random()*n)}async function draw(){if(running||!participants.length)return;running=true;render();$('again').hidden=true;$('draw').hidden=true;$('status').textContent='Обираємо переможця…';const el=$('display');el.className='name spinning';const winner=participants[rand(participants.length)];const start=performance.now(),duration=3900;while(true){let t=performance.now()-start;if(t>=duration)break;el.textContent=participants[rand(participants.length)];await new Promise(r=>setTimeout(r,35+Math.pow(t/duration,3)*290))}el.textContent=winner;el.className='name winner';$('status').textContent='🏆 Вітаємо переможця!';$('draw').hidden=false;$('again').hidden=false;running=false;render();celebrate()}function celebrate(){const canvas=$('confetti'),ctx=canvas.getContext('2d'),dpr=devicePixelRatio||1;canvas.width=innerWidth*dpr;canvas.height=innerHeight*dpr;ctx.scale(dpr,dpr);const parts=Array.from({length:130},()=>({x:Math.random()*innerWidth,y:-Math.random()*innerHeight*.8,v:2+Math.random()*4,s:3+Math.random()*6,a:Math.random()*6.28,c:['#b8ff35','#fff','#58d983','#e6fca9'][Math.floor(Math.random()*4)]}));let frames=0;function frame(){ctx.clearRect(0,0,innerWidth,innerHeight);parts.forEach(p=>{p.y+=p.v;p.x+=Math.sin(p.a+=.04)*1.4;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,p.s,p.s*.55)});if(frames++<170)requestAnimationFrame(frame);else ctx.clearRect(0,0,innerWidth,innerHeight)}frame()}render();</script></body></html>
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#080d11">
+<title>BILOK.UA • CASE DROP</title>
+<style>
+:root{--bg:#080d11;--panel:#111b21;--panel2:#18262d;--line:#30444b;--cyan:#05b9ee;--lime:#b5ff35;--white:#f2fbff;--muted:#8fa4ad;--gold:#ffd36c}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse at 50% 0,#123243 0,#080f14 43%,#070b0e 85%);color:var(--white);font:15px -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;min-height:100svh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom);overflow-x:hidden}
+main{max-width:560px;margin:auto;padding:22px 15px 65px}.top{display:flex;align-items:center;justify-content:space-between;gap:10px}.brand{font-size:26px;font-weight:1000;font-style:italic;letter-spacing:-1.4px;white-space:nowrap}.brand b{color:var(--cyan)}.brand small{display:block;font-size:9px;font-weight:750;font-style:normal;letter-spacing:1.4px;color:#8eb8c8;margin-top:-3px}.tag{border:1px solid #28647a;background:#0a2633;border-radius:20px;color:#7ee5ff;font-size:10px;font-weight:900;padding:9px 11px;letter-spacing:1.2px;white-space:nowrap}.tag i{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime);margin-right:5px}
+h1{font-size:clamp(34px,9vw,49px);line-height:1.02;letter-spacing:-1.8px;margin:32px 2px 10px;font-weight:950}h1 em{color:var(--cyan);font-style:normal}.intro{color:var(--muted);line-height:1.55;margin:0 2px 22px}
+.case{position:relative;overflow:hidden;border:1px solid #335564;border-radius:25px;background:radial-gradient(ellipse at 50% 30%,#193b47 0%,#111e27 52%,#0c151b 100%);box-shadow:0 25px 70px #0008, inset 0 0 70px #05b9ee09;padding:22px 0 18px}.case:after{content:"";pointer-events:none;position:absolute;inset:0;border-radius:25px;box-shadow:inset 0 0 18px #76dbff0b}.case-head{display:flex;justify-content:space-between;padding:0 18px;gap:8px;align-items:center}.eyebrow{font-size:10px;font-weight:950;color:#89b8c7;letter-spacing:2px}.chance{font-size:11px;color:#c8eefc;background:#173441;padding:7px 10px;border-radius:30px}
+.stage{position:relative;margin:21px 0 15px;height:188px;overflow:hidden;border-top:1px solid #2a515d;border-bottom:1px solid #2a515d;background:repeating-linear-gradient(90deg,#0c151b 0 38px,#0e1b21 39px 40px)}.stage:before,.stage:after{content:"";position:absolute;top:0;bottom:0;width:55px;z-index:4;pointer-events:none}.stage:before{left:0;background:linear-gradient(90deg,#081218,transparent)}.stage:after{right:0;background:linear-gradient(270deg,#081218,transparent)}
+.track{display:flex;gap:10px;align-items:center;height:100%;width:max-content;transform:translate3d(0,0,0);will-change:transform}.slot{width:160px;height:128px;flex:0 0 160px;padding:15px 10px;border-radius:13px;background:linear-gradient(145deg,#223b48,#132630);border:1px solid #3e6572;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:11px;box-shadow:inset 0 0 28px #0af2ff0c;text-align:center}.slot:before{content:"✦";font-size:22px;color:#65d5f2}.slot .slot-name{font-size:14px;font-weight:850;overflow-wrap:anywhere;line-height:1.18;max-height:52px;overflow:hidden}.slot.rare{background:linear-gradient(145deg,#6e4d19,#242014);border-color:var(--gold)}.slot.rare:before{content:"★";color:var(--gold)}
+.marker{position:absolute;z-index:6;top:0;bottom:0;left:50%;width:3px;transform:translateX(-50%);background:linear-gradient(0deg,transparent,var(--lime) 20%,var(--lime) 80%,transparent);box-shadow:0 0 12px var(--lime),0 0 28px #b5ff3566;pointer-events:none}.marker:before,.marker:after{content:"";position:absolute;left:50%;transform:translateX(-50%);border-left:11px solid transparent;border-right:11px solid transparent}.marker:before{top:0;border-top:15px solid var(--lime)}.marker:after{bottom:0;border-bottom:15px solid var(--lime)}
+.result{min-height:93px;display:grid;place-items:center;padding:6px 16px 16px;text-align:center}.result .caption{font-size:11px;letter-spacing:2px;color:var(--muted);font-weight:900;margin-bottom:7px}.result .outcome{font-weight:1000;font-size:clamp(24px,7vw,38px);overflow-wrap:anywhere;color:#e5f9ff}.result.win .outcome{color:var(--lime);text-shadow:0 0 34px #b5ff354c;animation:pop .65s both}.result.everyone .outcome{color:var(--gold);text-shadow:0 0 22px #ffd36caa,0 0 55px #ffd36c77;animation:jackpotGlow 1.4s ease-in-out infinite alternate}.result.everyone{background:radial-gradient(ellipse at center,#88601b33,transparent 70%)}@keyframes jackpotGlow{from{filter:brightness(1);transform:scale(.98)}to{filter:brightness(1.3);transform:scale(1.04)}}.result .detail{font-size:12px;color:#b4cbd4;line-height:1.4;margin-top:9px}.btn{appearance:none;border:0;background:linear-gradient(125deg,#c3ff52,#aaff15);width:calc(100% - 36px);margin:0 18px;border-radius:16px;min-height:57px;padding:13px;font-weight:950;font-size:16px;color:#112012;box-shadow:0 8px 30px #aeff2942;cursor:pointer;touch-action:manipulation}.btn:disabled{opacity:.48;box-shadow:none;cursor:not-allowed}.btn:active{transform:scale(.985)}.meta{text-align:center;margin-top:14px;color:#95b0b8;font-size:11px;line-height:1.5;padding:0 15px}
+.section{display:flex;align-items:center;justify-content:space-between;margin:28px 3px 13px;gap:10px}.section strong{font-size:19px}.counter{color:var(--lime);border-radius:30px;background:#213326;padding:8px 12px;font-weight:800;font-size:12px}
+.editor{background:linear-gradient(130deg,#15232a,#0e171c);border:1px solid #31505a;border-radius:20px;padding:16px}.editor label{font-size:12px;display:block;color:#b4ccd4;margin-bottom:10px;font-weight:700}.editor textarea{display:block;resize:vertical;width:100%;min-height:145px;padding:13px;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;background:#0b1419;color:#f4fbfd;border:1px solid #46626b;border-radius:14px;outline:none}.editor textarea:focus{border-color:var(--cyan);box-shadow:0 0 0 2px #05b9ee22}.actions{display:flex;gap:9px;margin-top:12px}.actions button,.controls button{font-size:13px;font-weight:850;border-radius:12px;border:1px solid #3d5962;min-height:45px;background:#24363e;color:#e3f5fc;padding:9px 12px;cursor:pointer;touch-action:manipulation}.actions button.primary{flex:1;color:#07202a;background:var(--cyan);border-color:var(--cyan)}.actions button.secondary{flex:0 0 auto}.participants{display:flex;flex-wrap:wrap;gap:7px;margin-top:13px}.chip{border:1px solid #365760;background:#1c2f37;color:#d6f3fc;border-radius:30px;padding:8px 10px;font-size:12px;max-width:100%;overflow-wrap:anywhere}.chip button{border:0;background:transparent;color:#89adba;font-size:17px;vertical-align:middle;cursor:pointer;padding:0 0 0 5px}
+.controls{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:12px}.controls button{background:transparent;min-height:35px;font-size:11px;padding:8px 10px}.controls p{color:var(--muted);font-size:11px;margin:0}.foot{text-align:center;color:#59717d;font-size:10px;letter-spacing:1.3px;margin-top:31px}
+.confetti{position:fixed;top:-20px;z-index:99;pointer-events:none;width:8px;height:13px;animation:fall var(--duration) linear forwards;opacity:0}@keyframes fall{0%{transform:translate3d(var(--x),-20px,0) rotate(0);opacity:1}100%{transform:translate3d(calc(var(--x) + var(--drift)),110vh,0) rotate(var(--rot));opacity:0}}
+@keyframes pop{0%{transform:scale(.75);opacity:0}70%{transform:scale(1.09)}100%{transform:scale(1);opacity:1}}
+@media(prefers-reduced-motion:reduce){.track{transition-duration:.1s!important}.confetti{animation-duration:.2s!important}}
+</style>
+</head>
+<body>
+<main>
+<header class="top"><div class="brand">BILOK<b>.UA</b><small>СПОРТИВНЕ ХАРЧУВАННЯ</small></div><span class="tag"><i></i>CASE DROP · LIVE</span></header>
+<h1>Відкрий кейс.<br><em>Дізнайся, хто виграв.</em></h1>
+<p class="intro">Нікнейми пролітають під маркером, як предмети в кейсі. Наприкінці — один переможець або суперприз для всіх!</p>
+<section class="case" id="case">
+<div class="case-head"><div class="eyebrow">✦ RANDOM CASE OPENING</div><div class="chance">🎁 <b>СЕКРЕТНИЙ СУПЕРДЖЕКПОТ</b></div></div>
+<div class="stage" id="stage"><div class="track" id="track"></div><div class="marker"></div></div>
+<div class="result" id="result"><div><div class="caption" id="caption">ГОТОВИЙ ДО РОЗІГРАШУ</div><div class="outcome" id="outcome">Хто переможе?</div><div class="detail" id="detail">Додай учасників нижче</div></div></div>
+<button class="btn" id="spin" type="button">✦ ВІДКРИТИ КЕЙС</button>
+<div class="meta">🎁 У кейсі прихований секретний суперджекпот. Якщо він випаде — виграють усі учасники!</div>
+</section>
+<div class="section" id="entry"><strong>Учасники</strong><span class="counter" id="count">0 учасників</span></div>
+<section class="editor" id="editor">
+<label for="names">Встав Instagram-нікнейми, кожен з нового рядка</label>
+<textarea id="names" placeholder="@username1&#10;@username2&#10;@username3" spellcheck="false" autocapitalize="off" autocomplete="off"></textarea>
+<div class="actions"><button class="primary" type="button" id="add">＋ Додати учасників</button><button class="secondary" type="button" id="clear">Очистити</button></div>
+<div class="participants" id="participants"></div>
+</section>
+<div class="controls"><button type="button" id="toggle">👁 Сховати список для запису екрана</button><button type="button" id="reset">↻ Новий розіграш</button></div>
+<div class="foot">BILOK.UA · GIVEAWAY MACHINE · FAIR RANDOM</div>
+</main>
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+let participants = [];
+let running = false;
+let animationToken = 0;
+const CARD = 160, GAP = 10, STEP = CARD + GAP, FINAL_INDEX = 38;
+function rand(max){
+ if(max<=1) return 0;
+ if(window.crypto && crypto.getRandomValues){
+   const buf=new Uint32Array(1);
+   const limit=Math.floor(4294967296/max)*max;
+   let n;
+   do {crypto.getRandomValues(buf);n=buf[0]} while(n>=limit);
+   return n%max;
+ }
+ return Math.floor(Math.random()*max);
+}
+function save(){try{localStorage.setItem("bilokua_case_names_v1",JSON.stringify(participants));}catch(e){}}
+function load(){try{const p=JSON.parse(localStorage.getItem("bilokua_case_names_v1")||"[]");if(Array.isArray(p))participants=p.filter(x=>typeof x==="string").slice(0,500);}catch(e){}}
+function render(){
+ $("count").textContent=participants.length+" учасників";
+ $("participants").replaceChildren();
+ participants.forEach((name,i)=>{
+  const chip=document.createElement("span");chip.className="chip";
+  chip.append(document.createTextNode(name));
+  const remove=document.createElement("button");remove.type="button";remove.textContent="×";remove.setAttribute("aria-label","Видалити "+name);
+  remove.addEventListener("click",()=>{if(running)return;participants.splice(i,1);save();render();drawIdle();});
+  chip.append(remove);$("participants").append(chip);
+ });
+ $("spin").disabled=running||participants.length===0;
+ $("add").disabled=running;$("clear").disabled=running;
+}
+function slot(name,rare){
+ const el=document.createElement("div");el.className="slot"+(rare?" rare":"");
+ const span=document.createElement("div");span.className="slot-name";span.textContent=name;el.append(span);
+ return el;
+}
+function drawIdle(){
+ const track=$("track");track.replaceChildren();
+ let examples=participants.length?participants:["@username","@winner","@bilokua"];
+ for(let i=0;i<11;i++)track.append(slot(examples[i%examples.length],false));
+ track.style.transition="none";
+ const center=($("stage").clientWidth-CARD)/2;
+ track.style.transform="translate3d("+(center-STEP*3)+"px,0,0)";
+ if(!running){$("result").className="result";$("caption").textContent="ГОТОВИЙ ДО РОЗІГРАШУ";$("outcome").textContent="Хто переможе?";$("detail").textContent=participants.length?participants.length+" учасників у кейсі":"Додай учасників нижче";}
+}
+function celebrate(){
+ const colors=["#b5ff35","#05b9ee","#ffffff","#ffd36c","#62ead0"];
+ for(let i=0;i<105;i++){
+  const p=document.createElement("i");p.className="confetti";
+  p.style.background=colors[rand(colors.length)];
+  p.style.setProperty("--x",rand(window.innerWidth)+"px");
+  p.style.setProperty("--drift",(rand(300)-150)+"px");
+  p.style.setProperty("--rot",(rand(1500)-750)+"deg");
+  p.style.setProperty("--duration",(2.1+rand(24)/10)+"s");
+  p.style.animationDelay=(rand(1000)/1000)+"s";
+  document.body.append(p);setTimeout(()=>p.remove(),6500);
+ }
+}
+function start(){
+ if(running||!participants.length)return;
+ running=true;animationToken++;
+ const currentToken=animationToken;
+ const everyone=rand(2)===0; // exactly 50% advertised and actual
+ const chosen=everyone?"★ ВИГРАЛИ ВСІ ★":participants[rand(participants.length)];
+ const track=$("track");track.replaceChildren();
+ for(let i=0;i<=FINAL_INDEX+4;i++){
+  let name;
+  if(i===FINAL_INDEX)name=chosen;
+  else if(rand(11)===0)name="★ ВИГРАЛИ ВСІ ★";
+  else name=participants[rand(participants.length)];
+  track.append(slot(name,name.includes("ВИГРАЛИ ВСІ")));
+ }
+ $("result").className="result";$("caption").textContent="КЕЙС ВІДКРИВАЄТЬСЯ";$("outcome").textContent="Прокрутка…";$("detail").textContent="Стеж за центральним маркером";
+ $("spin").textContent="КЕЙС ВІДКРИВАЄТЬСЯ…";$("spin").disabled=true;
+ render();
+ const center=($("stage").clientWidth-CARD)/2;
+ const jitter=rand(21)-10;
+ const end=center-STEP*FINAL_INDEX+jitter;
+ track.style.transition="none";track.style.transform="translate3d("+center+"px,0,0)";
+ // Force layout so transition is consistently triggered on iOS Safari
+ void track.offsetWidth;
+ requestAnimationFrame(()=>{
+  if(currentToken!==animationToken)return;
+  track.style.transition="transform 6200ms cubic-bezier(.08,.65,.12,1)";
+  track.style.transform="translate3d("+end+"px,0,0)";
+ });
+ setTimeout(()=>{
+  if(currentToken!==animationToken)return;
+  running=false;
+  $("result").className="result win"+(everyone?" everyone":"");
+  $("caption").textContent=everyone?"🎉 ЛЕГЕНДАРНИЙ СУПЕРДЖЕКПОТ":"🏆 ПЕРЕМОЖЕЦЬ";
+  $("outcome").textContent=everyone?"СЬОГОДНІ ВИГРАЛИ ВСІ!":chosen;
+  $("detail").textContent=everyone?"НЕЙМОВІРНО! Сьогодні переміг кожен учасник!":"Вітаємо! Ти переможець цього розіграшу.";
+  $("spin").textContent="✦ ВІДКРИТИ ЩЕ РАЗ";
+  celebrate();render();
+ },6350);
+}
+$("add").addEventListener("click",()=>{
+ if(running)return;
+ const names=$("names").value.split(/[\n\r,;]+/).map(s=>s.trim()).filter(Boolean);
+ const seen=new Set(participants.map(n=>n.toLowerCase()));
+ let added=0;
+ names.forEach(n=>{if(!seen.has(n.toLowerCase())&&participants.length<500){participants.push(n);seen.add(n.toLowerCase());added++;}});
+ $("names").value="";save();render();drawIdle();
+ $("detail").textContent=added?`Додано ${added}. У кейсі ${participants.length} учасників.`:"Нових учасників не додано";
+});
+$("clear").addEventListener("click",()=>{
+ if(running)return;
+ if(participants.length && !confirm("Видалити всіх учасників?"))return;
+ participants=[];save();$("names").value="";render();drawIdle();
+});
+$("spin").addEventListener("click",start);
+$("reset").addEventListener("click",()=>{
+ if(running)return;
+ drawIdle();$("spin").textContent="✦ ВІДКРИТИ КЕЙС";
+ window.scrollTo({top:0,behavior:"smooth"});
+});
+$("toggle").addEventListener("click",()=>{
+ const isHidden=$("editor").hidden;
+ $("editor").hidden=!isHidden;
+ $("toggle").textContent=isHidden?"👁 Сховати список для запису екрана":"👁 Показати список учасників";
+});
+window.addEventListener("resize",()=>{if(!running)drawIdle();});
+load();render();drawIdle();
+})();
+</script></body></html>
