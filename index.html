@@ -110,7 +110,7 @@ function start(){
  if(running||!participants.length)return;
  running=true;animationToken++;
  const currentToken=animationToken;
- const everyone=rand(2)===0; // exactly 50% advertised and actual
+ const everyone=rand(20)===0; // exactly 50% advertised and actual
  const chosen=everyone?"★ ВИГРАЛИ ВСІ ★":participants[rand(participants.length)];
  const track=$("track");track.replaceChildren();
  for(let i=0;i<=FINAL_INDEX+4;i++){
